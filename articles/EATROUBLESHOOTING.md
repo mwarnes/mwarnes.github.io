@@ -31,7 +31,7 @@ This article will attempt to give some guidance on how to troubleshoot those con
  
  Before getting started it is really import to understand how the MarkLogic External Security logic flow works to help dispell any preconceived misconceptions early on. Many products use LDAP or Active Directory to control access and not all follow the same way of working
   
-  ![Image](./images/MarkLogicExternalSecurityLogic.svg)
+  ![Image](./../images/MarkLogicExternalSecurityLogic.svg)
  
  
  
