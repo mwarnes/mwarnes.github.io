@@ -50,9 +50,9 @@ This article will attempt to give some guidance on how to troubleshoot those con
   
 1.  The first step looks fairly innocuous but still catches out a number of people, what MarkLogic is doing at this point is simply determining whether the Internal Security database will be used to determine access and authorisation. 
 
-  ![Image](./../images/MarkLogicAppServerSecurity1.png)
+    ![Image](./../images/MarkLogicAppServerSecurity1.png)
   
-  When Internal Security is enabled MarkLogic will always attempt to locate the connecting user in the Security Database if the user is not found and an External Security profile is defined (mixed authentication) MarkLogic will then proceed to attempt to authenticate the user against the defined LDAP server. If the user is found in the Security database, MarkLogic will verify the supplied password and grant access accordingly. A common misconception is the assumption that if the user is found in the Security database but authentication fails MarkLogic will then attempt to authenticate the user externally. This is not the case and is a particular import point to consider when using mixed authentication in that any external users **should not** have matching entries in the Security database. 
+    When Internal Security is enabled MarkLogic will always attempt to locate the connecting user in the Security Database if the user is not found and an External Security profile is defined (mixed authentication) MarkLogic will then proceed to attempt to authenticate the user against the defined LDAP server. If the user is found in the Security database, MarkLogic will verify the supplied password and grant access accordingly. A common misconception is the assumption that if the user is found in the Security database but authentication fails MarkLogic will then attempt to authenticate the user externally. This is not the case and is a particular import point to consider when using mixed authentication in that any external users **should not** have matching entries in the Security database. 
 
 2. The second step is where MarkLogic decides whether to use External Security or not and as can be seen from the flow diagram it is reached by two conditional steps:
 
@@ -63,12 +63,15 @@ This article will attempt to give some guidance on how to troubleshoot those con
 
 3. For the third step, MarkLogic determines how the Roles (Authorisation) will be derived. If "LDAP" authorisation is selected MarkLogic will create a temporary userid and assign Roles based on matching the users LDAP group membership to external names assigned to MarkLogic roles. Using LDAP for both authentication and authorisation allows an organization to maintain the MarkLogic users and roles completely independently of the MarkLogic Security database.
 
-  ![Image](./../images/MarkLogicExternalSecurity2.png)
+    ![Image](./../images/MarkLogicExternalSecurity2.png)
   
 4. The forth and final step is reached when LDAP is used to authenticate the user but authorisation is performed internally. MarkLogic will attempt to map the full distinguished name (User DN) of the external LDAP to the external name of a internal user in the MarkLogic Security database, an entry is found the user will inheirt the roles assigned internally otherwise access is denied.
 
-  ![Image](./../images/MarkLogicExternalSecurity1.png)
+    ![Image](./../images/MarkLogicExternalSecurity1.png)
 
 Hopefully, this has given you a better idea of how the basic principles of MarkLogic Authentication and Authorisation work and will make things a little easier when working through the various scenarios that follow.
  
 
+## External Security scenarios 
+
+ 
