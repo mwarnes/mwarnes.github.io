@@ -72,6 +72,30 @@ This article will attempt to give some guidance on how to troubleshoot those con
 Hopefully, this has given you a better idea of how the basic principles of MarkLogic Authentication and Authorisation work and will make things a little easier when working through the various scenarios that follow.
  
 
-## External Security scenarios 
+## External Security LDAP Server configuration
+
+Whether you are using LDAP for authentication or authentication and authorisation the primary configuration point is the LDAP Server definition. Ensuring the LDAP server configuration is valid is key and will save much time and frustration down the line if make sure it is working as expected up front.
+
+   ![Image](./../images/MarkLogicLDAPServerConfig.png.png)
+
+Before we check that the configuration is working it's worth reviewing each parameter to understand which it is and the role it takes in the external security process.
+
+**ldap server uri** As the comment in the UI states this is the URI of the ldap server that MarkLogic will connect to and is of the for <protocol>://<host>:<port>, where protocol can be either **ldap** or **ldaps**, host is either a hostname or IP Address and port is the LDAP listening port.
+If the port is not specified then the default port 389 will be used if ldap is speciofied and port 636 if ldaps is used.
+
+The following are example of valid and invalid ldap server uri's
+
+#####valid
+* ldap://192.168.0.50:389
+* ldaps://marklogic.com
+#####invalid
+* 192.168.40.222:389
+* ldap.server.com
+
+Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic TRsuted certificate store.
+
+<script src="https://gist.githubusercontent.com/ableasdale/40078492aa612b153a49/raw/2fbeeae5a6dabbf80dc0879f851b33a674d7c830/load-trusted-pem-certificate.xqy"></script>
+
+ 
 
  
