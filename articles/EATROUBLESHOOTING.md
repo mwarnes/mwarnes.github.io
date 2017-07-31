@@ -124,6 +124,6 @@ __Note:__ While MD5 is supported as a bind Method in MarkLogic I would highly re
 <font color="blue"><b>ldap memberof attribute</b></font><br>
 <font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __""groupMembership"__ then you can override the default values with these fields.
 
-<font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MArkLogic 9 and later.</font>
+<font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
 
 
