@@ -76,7 +76,7 @@ Hopefully, this has given you a better idea of how the basic principles of MarkL
 
 Whether you are using LDAP for authentication or authentication and authorisation the primary configuration point is the LDAP Server definition. Ensuring the LDAP server configuration is valid is key and will save much time and frustration down the line if make sure it is working as expected up front.
 
-   ![Image](./../images/MarkLogicLDAPServerConfigpng)
+   ![Image](./../images/MarkLogicLDAPServerConfig.png)
 
 Before we check that the configuration is working it's worth reviewing each parameter to understand which it is and the role it takes in the external security process.
 
@@ -85,18 +85,17 @@ If the port is not specified then the default port 389 will be used if ldap is s
 
 The following are example of valid and invalid ldap server uri's
 
-#####valid
+__valid__
 * ldap://192.168.0.50:389
 * ldaps://marklogic.com
 
-#####invalid
+__invalid__
 * 192.168.40.222:389
 * ldap.server.com
 
-Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic TRsuted certificate store.
+Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic Trusted certificate store.
 
-<script src="https://gist.githubusercontent.com/ableasdale/40078492aa612b153a49/raw/2fbeeae5a6dabbf80dc0879f851b33a674d7c830/load-trusted-pem-certificate.xqy"></script>
-
+<script src="https://gist.github.com/ableasdale/40078492aa612b153a49.js"></script>
  
 
  
