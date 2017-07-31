@@ -100,13 +100,13 @@ Note: when using **ldaps** you will need to import the required LDAP server CA C
 
 <font color="blue">**ldap base**</font>This parameter defines where in the LDAP Directory tree the search for a user and group membership will take place. You should ensure that you select a base Distinguished Name (DN) that will return the correct information that MarkLogic needs to complete authentication and/or authorisation.
                                        
-For example, the Apache Directory Studio (ApacheDS) display below of a simple LDAP server shows entries for Users where the DN is "ou=Users,dc=MarkLogic,dc=Local" and Groups with a DN of __"ou=Groups,dc=MarkLogic,dc=Local"__. If only LDAP authentication is required than setting the LDAP base to __"ou=Users,dc=MarkLogic,dc=Local"__ would be sufficient as all the users are contained within that sub-tree, however if authorisation is also required to determine roll access then searches for group of group membership would not return any results as these are contain in a separate sub-tree. In this case selecting __"dc=MarkLogic,dc=Local"__ as the LDAP base DN would be a better choice as it contains sub-trees for both Users and Groups.
+For example, the Apache Directory Studio (ApacheDS) display below of a simple LDAP server shows entries for Users where the DN is __"ou=Users,dc=MarkLogic,dc=Local"__ and Groups with a DN of __"ou=Groups,dc=MarkLogic,dc=Local"__. If only LDAP authentication is required than setting the LDAP base to __"ou=Users,dc=MarkLogic,dc=Local"__ would be sufficient as all the users are contained within that sub-tree, however if authorisation is also required to determine roll access then searches for group of group membership would not return any results as these are contain in a separate sub-tree. In this case selecting __"dc=MarkLogic,dc=Local"__ as the LDAP base DN would be a better choice as it contains sub-trees for both Users and Groups.
 
    ![Image](./../images/MarkLogicLDAPDirectory1.png)
    
-<font color="blue">**ldap attribute**</font>The LDAP attribute is used as the filter during the LDAP Search performed by MarkLogic to locate the user directory entry, this is typically __"uid"__ for Unix based LDAP servers or __"sAMAccountName"__ if you are using Microsoft Windows Active Directory. 
+<font color="blue">__ldap attribute__</font>The LDAP attribute is used as the filter during the LDAP Search performed by MarkLogic to locate the user directory entry, this is typically __"uid"__ for Unix based LDAP servers or __"sAMAccountName"__ if you are using Microsoft Windows Active Directory. 
 
-The following ApacheDS display shows a LDAP entry that hold the userid in the __""uid"__ attribute.
+The following ApacheDS display shows a LDAP entry that hold the userid in the __"uid"__ attribute.
 
    ![Image](./../images/MarkLogicLDAPUserEntry.png)   
    
