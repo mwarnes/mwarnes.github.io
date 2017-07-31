@@ -80,8 +80,8 @@ Whether you are using LDAP for authentication or authentication and authorisatio
 
 Before we check that the configuration is working it's worth reviewing each parameter to understand which it is and the role it takes in the external security process.
 
-**ldap server uri** As the comment in the UI states this is the URI of the ldap server that MarkLogic will connect to and is of the for <protocol>://<host>:<port>, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
-If the port is not specified then the default port 389 will be used if ldap is speciofied and port 636 if ldaps is used.
+<font color="blue">**ldap server uri**</font>As the comment in the UI states this is the URI of the LDAP server that MarkLogic will connect to and is of the for <protocol>://<host>:<port>, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
+If the port is not specified then the default port 389 will be used if LDAP is specified and port 636 if LDAPS is used.
 
 The following are example of valid and invalid ldap server uri's
 
@@ -90,12 +90,24 @@ __valid__
 * ldaps://marklogic.com
 
 __invalid__
-* 192.168.40.222:389
-* ldap.server.com
+* ~~192.168.40.222:389~~
+* ~~ldap.server.com~~
 
 Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic Trusted certificate store.
 
 <script src="https://gist.github.com/ableasdale/40078492aa612b153a49.js"></script>
  
 
- 
+<font color="blue">**ldap base**</font>This parameter defines where in the LDAP Directory tree the search for a user and group membership will take place. You should ensure that you select a base Distinguished Name (DN) that will return the correct information that MarkLogic needs to complete authentication and/or authorisation.
+                                       
+For example, the Apache Directory Studio (ApacheDS) display below of a simple LDAP server shows entries for Users where the DN is "ou=Users,dc=MarkLogic,dc=Local" and Groups with a DN of __"ou=Groups,dc=MarkLogic,dc=Local"__. If only LDAP authentication is required than setting the LDAP base to __"ou=Users,dc=MarkLogic,dc=Local"__ would be sufficient as all the users are contained within that sub-tree, however if authorisation is also required to determine roll access then searches for group of group membership would not return any results as these are contain in a separate sub-tree. In this case selecting __"dc=MarkLogic,dc=Local"__ as the LDAP base DN would be a better choice as it contains sub-trees for both Users and Groups.
+
+   ![Image](./../images/MarkLogicLDAPDirectory1.png)
+   
+<font color="blue">**ldap attribute**</font>The LDAP attribute is used as the filter during the LDAP Search performed by MarkLogic to locate the user directory entry, this is typically __"uid"__ for Unix based LDAP servers or __"sAMAccountName"__ if you are using Microsoft Windows Active Directory. 
+
+The following ApacheDS display shows a LDAP entry that hold the userid in the __""uid"__ attribute.
+
+   ![Image](./../images/MarkLogicLDAPUserEntry.png)   
+   
+  
