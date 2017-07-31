@@ -80,10 +80,10 @@ Whether you are using LDAP for authentication or authentication and authorisatio
 
 Before we check that the configuration is working it's worth reviewing each parameter to understand which it is and the role it takes in the external security process.
 
-<font color="blue"><b>ldap server uri</b></font>As the comment in the UI states this is the URI of the LDAP server that MarkLogic will connect to and is of the format `<protocol>://<host>:<port>`, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
-If the port is not specified then the default port 389 will be used if LDAP is specified and port 636 if LDAPS is used.
+* <font color="blue"><b>ldap server uri</b></font>As the comment in the UI states this is the URI of the LDAP server that MarkLogic will connect to and is of the format `<protocol>://<host>:<port>`, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
+    If the port is not specified then the default port 389 will be used if LDAP is specified and port 636 if LDAPS is used.
 
-The following are example of valid and invalid ldap server uri's
+    The following are example of valid and invalid ldap server uri's
 
 __valid__
 * ldap://192.168.0.50:389
@@ -93,37 +93,37 @@ __invalid__
 * ~~192.168.40.222:389~~
 * ~~ldap.server.com~~
 
-Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic Trusted certificate store.
+    Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic Trusted certificate store.
 
 <script src="https://gist.github.com/ableasdale/40078492aa612b153a49.js"></script>
  
-<font color="blue"><b>ldap base</b></font>This parameter defines where in the LDAP Directory tree the search for a user and group membership will take place. You should ensure that you select a base Distinguished Name (DN) that will return the correct information that MarkLogic needs to complete authentication and/or authorisation.
+* <font color="blue"><b>ldap base</b></font>This parameter defines where in the LDAP Directory tree the search for a user and group membership will take place. You should ensure that you select a base Distinguished Name (DN) that will return the correct information that MarkLogic needs to complete authentication and/or authorisation.
                                        
-For example, the Apache Directory Studio (ApacheDS) display below of a simple LDAP server shows entries for Users where the DN is __"ou=Users,dc=MarkLogic,dc=Local"__ and Groups with a DN of __"ou=Groups,dc=MarkLogic,dc=Local"__. If only LDAP authentication is required than setting the LDAP base to __"ou=Users,dc=MarkLogic,dc=Local"__ would be sufficient as all the users are contained within that sub-tree, however if authorisation is also required to determine roll access then searches for group of group membership would not return any results as these are contain in a separate sub-tree. In this case selecting __"dc=MarkLogic,dc=Local"__ as the LDAP base DN would be a better choice as it contains sub-trees for both Users and Groups.
+    For example, the Apache Directory Studio (ApacheDS) display below of a simple LDAP server shows entries for Users where the DN is __"ou=Users,dc=MarkLogic,dc=Local"__ and Groups with a DN of __"ou=Groups,dc=MarkLogic,dc=Local"__. If only LDAP authentication is required than setting the LDAP base to __"ou=Users,dc=MarkLogic,dc=Local"__ would be sufficient as all the users are contained within that sub-tree, however if authorisation is also required to determine roll access then searches for group of group membership would not return any results as these are contain in a separate sub-tree. In this case selecting __"dc=MarkLogic,dc=Local"__ as the LDAP base DN would be a better choice as it contains sub-trees for both Users and Groups.
 
    ![Image](./../images/MarkLogicLDAPDirectory1.png)
    
-<font color="blue"><b>ldap attribute</b></font>The LDAP attribute is used as the filter during the LDAP Search performed by MarkLogic to locate the user directory entry, this is typically __"uid"__ for Unix based LDAP servers or __"sAMAccountName"__ if you are using Microsoft Windows Active Directory. 
+* <font color="blue"><b>ldap attribute</b></font>The LDAP attribute is used as the filter during the LDAP Search performed by MarkLogic to locate the user directory entry, this is typically __"uid"__ for Unix based LDAP servers or __"sAMAccountName"__ if you are using Microsoft Windows Active Directory. 
 
-The following ApacheDS display shows a LDAP entry that hold the userid in the __"uid"__ attribute.
+    The following ApacheDS display shows a LDAP entry that hold the userid in the __"uid"__ attribute.
 
    ![Image](./../images/MarkLogicLDAPUserEntry.png)   
    
-<font color="blue"><b>ldap default user</b></font>
-<font color="blue"><b>ldap password</b></font>The LDAP default user is used by MarkLogic authenticate to the LDAP server and perform a search using Base DN and attribute defined above to locate the user's directory entry. If LDAP authorisation is also configured then an additional search is performed for any group of group memberships to be used during Role determination. While the description describes the user as being the "default" you should ensure that the user defined has sufficient permissions on the LDAP server to search the configured Base DN and return all attributes and values. I'll go into more detail on exactly watch searches are performed and which attributes are retrieved when looking at the individual configuration scenarios later in this article.
+* <font color="blue"><b>ldap default user</b></font>
+* <font color="blue"><b>ldap password</b></font>The LDAP default user is used by MarkLogic authenticate to the LDAP server and perform a search using Base DN and attribute defined above to locate the user's directory entry. If LDAP authorisation is also configured then an additional search is performed for any group of group memberships to be used during Role determination. While the description describes the user as being the "default" you should ensure that the user defined has sufficient permissions on the LDAP server to search the configured Base DN and return all attributes and values. I'll go into more detail on exactly watch searches are performed and which attributes are retrieved when looking at the individual configuration scenarios later in this article.
 
-The ldap default user value can either be an LDAP User DN such as __"cn=Manager,dc=MarkLogic,dc=Local"__ or if you are using an Active Directory server then a Domain user such as __"MARKLOGIC\Administrator"__ can be used instead.
+    The ldap default user value can either be an LDAP User DN such as __"cn=Manager,dc=MarkLogic,dc=Local"__ or if you are using an Active Directory server then a Domain user such as __"MARKLOGIC\Administrator"__ can be used instead.
 
-__Note:__ If you are using the __MD5__ bind method below then the LDAP default user and password are not required and MarkLogic will authenticate to the LDAP server using the supplied userid and a __DIGEST-MD5__ Bind instead.
+    __Note:__ If you are using the __MD5__ bind method below then the LDAP default user and password are not required and MarkLogic will authenticate to the LDAP server using the supplied userid and a __DIGEST-MD5__ Bind instead.
 
-<font color="blue"><b>ldap bind method</b></font>This parameter controls whether MarkLogic connects to LDAP or Active Directory server using the default user and a __"Simple"__ bind or the supplied userid and a __DIGEST_MD5__ bind.
+* <font color="blue"><b>ldap bind method</b></font>This parameter controls whether MarkLogic connects to LDAP or Active Directory server using the default user and a __"Simple"__ bind or the supplied userid and a __DIGEST_MD5__ bind.
 
-__Note:__ While MD5 is supported as a bind Method in MarkLogic I would highly recommend against using it for new configurations. DIGEST-MD5 is now considered insecure has been officially deprecated with [RFC6331](https://tools.ietf.org/html/rfc6331), if you are using MD5 for an existing configuration I would recommend moving to using the __"Simple"__ Bind method and the secure __LDAPS__ protocol instead.
+    __Note:__ While MD5 is supported as a bind Method in MarkLogic I would highly recommend against using it for new configurations. DIGEST-MD5 is now considered insecure has been officially deprecated with [RFC6331](https://tools.ietf.org/html/rfc6331), if you are using MD5 for an existing configuration I would recommend moving to using the __"Simple"__ Bind method and the secure __LDAPS__ protocol instead.
 
 
-<font color="blue"><b>ldap memberof attribute</b></font>
-<font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __""groupMembership"__ then you can override the default values with these fields.
+* <font color="blue"><b>ldap memberof attribute</b></font>
+* <font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __""groupMembership"__ then you can override the default values with these fields.
 
-<font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
+    <font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
 
 
