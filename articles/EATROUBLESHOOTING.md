@@ -85,11 +85,11 @@ Before we check that the configuration is working it's worth reviewing each para
 
     The following are example of valid and invalid ldap server uri's
 
-__valid__
+    __valid__
 * ldap://192.168.0.50:389
 * ldaps://marklogic.com
 
-__invalid__
+    __invalid__
 * ~~192.168.40.222:389~~
 * ~~ldap.server.com~~
 
@@ -122,7 +122,7 @@ __invalid__
 
 
 * <font color="blue"><b>ldap memberof attribute</b></font>
-* <font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __""groupMembership"__ then you can override the default values with these fields.
+* <font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __"groupMembership"__ then you can override the default values with these fields.
 
     <font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
 
