@@ -109,7 +109,7 @@ The following ApacheDS display shows a LDAP entry that hold the userid in the __
 
    ![Image](./../images/MarkLogicLDAPUserEntry.png)   
    
-<font color="blue"><b>ldap default user</b></font><br>
+<font color="blue"><b>ldap default user</b></font>
 <font color="blue"><b>ldap password</b></font>The LDAP default user is used by MarkLogic authenticate to the LDAP server and perform a search using Base DN and attribute defined above to locate the user's directory entry. If LDAP authorisation is also configured then an additional search is performed for any group of group memberships to be used during Role determination. While the description describes the user as being the "default" you should ensure that the user defined has sufficient permissions on the LDAP server to search the configured Base DN and return all attributes and values. I'll go into more detail on exactly watch searches are performed and which attributes are retrieved when looking at the individual configuration scenarios later in this article.
 
 The ldap default user value can either be an LDAP User DN such as __"cn=Manager,dc=MarkLogic,dc=Local"__ or if you are using an Active Directory server then a Domain user such as __"MARKLOGIC\Administrator"__ can be used instead.
@@ -121,7 +121,7 @@ __Note:__ If you are using the __MD5__ bind method below then the LDAP default u
 __Note:__ While MD5 is supported as a bind Method in MarkLogic I would highly recommend against using it for new configurations. DIGEST-MD5 is now considered insecure has been officially deprecated with [RFC6331](https://tools.ietf.org/html/rfc6331), if you are using MD5 for an existing configuration I would recommend moving to using the __"Simple"__ Bind method and the secure __LDAPS__ protocol instead.
 
 
-<font color="blue"><b>ldap memberof attribute</b></font><br>
+<font color="blue"><b>ldap memberof attribute</b></font>
 <font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __""groupMembership"__ then you can override the default values with these fields.
 
 <font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
