@@ -80,7 +80,7 @@ Whether you are using LDAP for authentication or authentication and authorisatio
 
 Before we check that the configuration is working it's worth reviewing each parameter to understand which it is and the role it takes in the external security process.
 
-<font color="blue">**ldap server uri**</font>As the comment in the UI states this is the URI of the LDAP server that MarkLogic will connect to and is of the for <protocol>://<host>:<port>, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
+<font color="blue">**ldap server uri**</font>As the comment in the UI states this is the URI of the LDAP server that MarkLogic will connect to and is of the format `<protocol>://<host>:<port>`, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
 If the port is not specified then the default port 389 will be used if LDAP is specified and port 636 if LDAPS is used.
 
 The following are example of valid and invalid ldap server uri's
