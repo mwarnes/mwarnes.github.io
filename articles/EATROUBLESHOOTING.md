@@ -127,3 +127,4 @@ __Note:__ While MD5 is supported as a bind Method in MarkLogic I would highly re
 <font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
 
 
+
