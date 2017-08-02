@@ -131,10 +131,38 @@ Before we check that the configuration is working it's worth reviewing each para
 
 Before proceeding to complete the external security configuration it's worth ensuring that the settings are correct and MarkLogic is able to connect and retrieve the required information.
 
+ldapsearch is useful in ensuring that the LDAP Server responds correctly, the example below uses the settings from a configured MarkLogic LDAP server to search for and return the DN of a user.
 
-![Image](./../images/LDAPServerConfigRelationship.svg)
+````
+ldapsearch -H ldap://192.168.66.240:389 -x -D "cn=manager,dc=marklogic,dc=local" -W -b "dc=MarkLogic,dc=Local" -s sub "(uid=mluser1)" "dn"
+Enter LDAP Password: 
+# extended LDIF
+#
+# LDAPv3
+# base <dc=MarkLogic,dc=Local> with scope subtree
+# filter: (uid=mluser1)
+# requesting: dn 
+#
 
-<a href="http://mwarnes.github.io/images/LDAPServerConfigRelationship.svg/"> ![Image](./../images/LDAPServerConfigRelationship.svg) </a>
+# mluser1, Users, MarkLogic.Local
+dn: uid=mluser1,ou=Users,dc=MarkLogic,dc=Local
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 2
+# numEntries: 1
+````
+
+If the ldapsearch completes successfully and returns an expected User DN you can run the following XQuery and the MarkLogic QConsole to see if it does the same.
+
+<script src="https://gist.github.com/mwarnes/faa25202c84368d44f7f96c30f280725.js"></script>
+
+To see the relationship between a MarkLogic LDAP Server configuration and the ldapsearch arguments or XQuery options click on the image below.
+
+<a href="http://mwarnes.github.io/images/LDAPServerConfigRelationship.svg"> ![Image](./../images/LDAPServerConfigRelationship.svg) </a>
+
 
 
  
