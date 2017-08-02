@@ -132,4 +132,7 @@ Before we check that the configuration is working it's worth reviewing each para
 Before proceeding to complete the external security configuration it's worth ensuring that the settings are correct and MarkLogic is able to connect and retrieve the required information.
 
 
-![Image](./../images/MarkLogicExternalSecurityLogic.svg)
+![Image](./../images/LDAPServerConfigRelationship.svg)
+
+
+ 
