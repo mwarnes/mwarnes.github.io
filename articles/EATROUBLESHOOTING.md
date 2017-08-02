@@ -134,5 +134,7 @@ Before proceeding to complete the external security configuration it's worth ens
 
 ![Image](./../images/LDAPServerConfigRelationship.svg)
 
+<a href="http://mwarnes.github.io/images/LDAPServerConfigRelationship.svg/"> ![Image](./../images/LDAPServerConfigRelationship.svg) </a>
+
 
  
