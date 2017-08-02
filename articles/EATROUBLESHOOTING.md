@@ -127,3 +127,9 @@ Before we check that the configuration is working it's worth reviewing each para
     <font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
 
 
+## Verifying the LDAP Server configuration
+
+Before proceeding to complete the external security configuration it's worth ensuring that the settings are correct and MarkLogic is able to connect and retrieve the required information.
+
+
+![Image](./../images/MarkLogicExternalSecurityLogic.svg)
