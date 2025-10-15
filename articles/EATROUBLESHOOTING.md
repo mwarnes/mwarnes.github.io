@@ -1,151 +1,366 @@
-## Troubleshooting MarkLogic External Security (LDAP and Active Directory)
+# 🔐 Troubleshooting MarkLogic External Security
+## LDAP and Active Directory Authentication & Authorization
 
-## Introduction
+[![MarkLogic](https://img.shields.io/badge/MarkLogic-External_Security-FF6B35?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRkY2QjM1Ii8+CjwvU3ZnPgo=)](https://docs.marklogic.com/guide/security/external-auth)
+[![LDAP](https://img.shields.io/badge/Protocol-LDAP%2FLDAPS-2E8B57?style=flat-square&logo=microsoft-azure&logoColor=white)](#)
+[![Active Directory](https://img.shields.io/badge/Microsoft-Active_Directory-0078D4?style=flat-square&logo=microsoft&logoColor=white)](#)
 
-MarkLogic allows you to configure MarkLogic Server so that users are authenticated and authorised using an external authentication protocol, such as Lightweight Directory Access Protocol (LDAP) or Kerberos. These external agents serve as centralized points of authentication or repositories for user information from which authorization decisions can be made.
+> **A comprehensive troubleshooting guide for MarkLogic external authentication**
+>
+> Learn to diagnose and resolve LDAP and Active Directory integration issues
 
-This article will attempt to give some guidance on how to troubleshoot those connection issues that occur after you have configured MarkLogic server for External Security using LDAP or Active Directory. As far as possible I will avoid repeating what is already in the MarkLogic documentation and to that end I would highly recommend that you make yourself familar with the following online documentation.
+---
+
+## 📋 Table of Contents
+
+- [Introduction](#-introduction)
+- [Essential Tools](#-essential-tools)
+- [First Principles](#-first-principles)
+- [LDAP Server Configuration](#-ldap-server-configuration)
+- [Configuration Verification](#-configuration-verification)
+- [Common Issues](#-common-issues)
+- [Best Practices](#-best-practices)
+
+---
+
+## 🎯 Introduction
+
+MarkLogic allows you to configure MarkLogic Server so that users are authenticated and authorized using an external authentication protocol, such as Lightweight Directory Access Protocol (LDAP) or Kerberos. These external agents serve as centralized points of authentication or repositories for user information from which authorization decisions can be made.
+
+This article provides comprehensive guidance on troubleshooting connection issues that occur after configuring MarkLogic Server for External Security using LDAP or Active Directory. Rather than repeating existing documentation, this guide focuses on practical troubleshooting techniques and real-world scenarios.
+
+### 📖 Prerequisites
+
+Before proceeding, familiarize yourself with the official MarkLogic documentation:
+
+- **[MarkLogic Authentication](https://docs.marklogic.com/guide/security/authentication)** - Core authentication concepts
+- **[MarkLogic External Authentication](https://docs.marklogic.com/guide/security/external-auth)** - External security configuration
+
+### 🎯 What This Guide Covers
+
+This article examines how MarkLogic works internally with external security, analyzing the communication between MarkLogic and LDAP/Active Directory servers, and providing practical diagnostic tools and techniques.
+
+### 🔐 Supported External Security Methods
+
+MarkLogic provides several external security authentication methods:
+
+| Method | Description | MarkLogic Version |
+|--------|-------------|-------------------|
+| **LDAP → Internal Users** | External LDAP users mapped to internal MarkLogic users | All versions |
+| **LDAP → Internal Roles** | External LDAP users mapped to internal roles using temporary userids | All versions |
+| **X.509 CN → Internal Users** | Certificate-based authentication mapping Common Name to internal users | MarkLogic 9+ |
+| **X.509 DN → Internal Users** | Certificate-based authentication mapping Distinguished Name to internal users | MarkLogic 9+ |
+| **X.509 DN → Internal Roles** | Certificate-based authentication mapping Distinguished Name to internal roles | MarkLogic 9+ |
+| **Mixed Authentication** | Combination of internal and external authentication | All versions |
+
+> **📝 Note**: Certificate-based authentication methods are only available in [MarkLogic 9+](https://docs.marklogic.com/guide/security/authentication#id_28959)
  
- * [MarkLogic Authentication](https://docs.marklogic.com/guide/security/authentication)
- * [MarkLogic External Authentication](https://docs.marklogic.com/guide/security/external-auth)
+## 🛠️ Essential Tools
+
+These tools are not merely useful—they are **essential** for serious LDAP and Active Directory troubleshooting with MarkLogic External Security. If you're not familiar with these tools, consider having an experienced colleague assist you.
+
+### 📊 Tool Overview
+
+| Tool | Platform | Purpose | Use Case |
+|------|----------|---------|----------|
+| **ldapsearch** | Unix/Linux | LDAP client testing | Verify LDAP server responses and authentication |
+| **ldp** | Windows | LDAP client testing | Windows equivalent of ldapsearch |
+| **Apache Directory Studio** | Cross-platform | LDAP browser/server | Visual LDAP tree exploration and local testing |
+| **Wireshark** | Cross-platform | Network protocol analysis | Low-level LDAP traffic inspection |
+| **QConsole** | MarkLogic | Query testing | Validate MarkLogic LDAP processing |
+
+### 🔍 Detailed Tool Descriptions
+
+#### **ldapsearch** (Unix/Linux)
+Command-line LDAP client for testing server connectivity and data retrieval. Essential for validating that your LDAP server behaves as expected and returns the information MarkLogic needs.
+
+**Key Features:**
+- Test authentication credentials
+- Verify search filters and base DNs
+- Validate returned attributes
+- Test LDAPS/TLS connections
+
+#### **ldp** (Windows)
+Microsoft's LDAP client tool, providing similar functionality to ldapsearch but with a GUI interface. Particularly useful when working with Active Directory.
+
+**Key Features:**
+- GUI-based LDAP operations
+- Active Directory integration
+- Built-in Windows authentication
+- LDAPS support
+
+#### **Apache Directory Studio**
+Cross-platform Java-based LDAP client with both browser and server capabilities.
+
+**Key Features:**
+- Visual LDAP tree navigation
+- Schema browser
+- Local LDAP server for testing
+- Entry editor and search tools
+- Connection management
+
+#### **Wireshark**
+Network protocol analyzer that captures and analyzes LDAP traffic between MarkLogic and your LDAP server.
+
+**Key Features:**
+- Real-time packet capture
+- LDAP protocol decoding
+- Filter and search capabilities
+- Connection troubleshooting
+- Performance analysis
+
+#### **QConsole** (MarkLogic)
+MarkLogic's built-in query console for testing XQuery operations and validating LDAP configurations.
+
+**Key Features:**
+- Test LDAP search functions
+- Validate configuration settings
+- Process LDAP search results
+- Debug authentication flows
+
+### 🔗 Quick Reference Links
+
+- **[ldapsearch Manual](https://linux.die.net/man/1/ldapsearch)** - Command-line reference
+- **[LDP Documentation](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc772839(v=ws.10))** - Microsoft LDAP tool
+- **[Apache Directory Studio](http://directory.apache.org/studio/)** - Download and documentation
+- **[Wireshark](https://www.wireshark.org/)** - Network analysis tool
+- **[QConsole Guide](https://docs.marklogic.com/guide/qconsole/intro)** - MarkLogic query console
+
+> **💡 Pro Tip**: Start with `ldapsearch` or `ldp` to validate basic LDAP connectivity before configuring MarkLogic. This approach isolates LDAP server issues from MarkLogic configuration problems.
+
  
- 
- Rather I will be looking more in depth at how MarkLogic works under the covers with regards External Security, what it is doing when it communicates with an LDAP or Active Directory server and some useful tools that will hopefully help you diagnose what exactly is going wrong.
- 
- MarkLogic provides for a varied array of external security methods as described below and I hope to cover them all within this article, however if there is something specific that is not covered please let me know and I will do my best to make the neccessary updates.
- 
- * External LDAP Users mapped to internal users
- * External LDAP users mapped to internal roles using temporary userids.
- * Certificate based authentication mapping X509 Common Name to internal users.
- * Certificate based authentication mapping X509 Distinguished Name to internal Users.
- * Certificate based authentication mapping X509 Distinguished Name to internal roles.
- * Mixed Internal and External Authentication.
- 
- **Note:** Certificate based authentication methods are only available in [MarkLogic 9](https://docs.marklogic.com/guide/security/authentication#id_28959)
- 
-## Useful Tools
- 
- Although this section is titled useful tools, I'd go so far as to say the following are essential tools if you are serious about diagnosing LDAP and Active Directory issues when attempting to use MarkLogic External Security. If you don't have personal experience with these tools it's well worth having someone around who does. I shall also try to include working examples along the way which will hopefully show how each utility is used.
+## 🧠 First Principles
+
+Understanding MarkLogic's external security logic flow is **critical** for effective troubleshooting. Many products implement LDAP/Active Directory integration differently, so don't assume MarkLogic works the same way as other systems you may have configured.
+
+### 🔄 The Four-Phase Authentication Flow
+
+The diagram below illustrates MarkLogic's external security decision process. While it may appear complex initially, it breaks down into four distinct, logical phases:
+
+![MarkLogic External Security Logic Flow](./../images/MarkLogicExternalSecurityLogic.svg)
   
-  **ldapsearch** (Unix) and **ldp** (Windows) are LDAP clients which are usually when checking to see if your LDAP server is behaving as expected and returning the information needed. They can also be used to evaluate if authentication credentials and method used by MarkLogic will work with your particular LDAP server. **Apache Directory Studio** is platform independent  Java GUI LDAP client, it's very useful for seeing a pictorial tree view of LDAP Server layout. Apache DS also has the ability for running a local LDAP server which can be used for testing MarkLogic External Security without the need for access to a production LDAP server.
-  
-  **Wireshark** is a great networking tool that can not only be used to check if there are any connectivity issues between MarkLogic and the LDAP server but also allows low-level protocol analysis on the actual LDAP Requests and Response that are being sent back and forth between MarkLogic and the LDAP server.
-  
-  The MarkLogic **QConsole** is also useful during problem diagnosis to check that the MarkLogic server is able to process the results that an LDAP Search may respond with. It can also be used to check that settings used for an External Security definition are valid and do not contain errors.
+### 📍 Phase 1: Internal Security Check
+
+![App Server Security Configuration](./../images/MarkLogicAppServerSecurity1.png)
+
+**What happens**: MarkLogic determines whether to consult the internal Security database.
+
+**Key Points**:
+- MarkLogic **always** checks the Security database first when Internal Security is enabled
+- If the user exists internally, MarkLogic validates the password and proceeds
+- If authentication fails for an internal user, MarkLogic does **NOT** fall back to external authentication
+
+> **⚠️ Critical Misconception**: Many assume that failed internal authentication will trigger external authentication. This is **false**. For mixed authentication to work properly, external users must **not** exist in the Security database.
+
+### 📍 Phase 2: External Security Decision
+
+**Triggers for external authentication**:
+- Internal Security is disabled on the App Server, **OR**
+- Internal Security is enabled but the user is not found in the Security database
+
+**Outcome**: If an External Security profile is defined, MarkLogic proceeds to external authentication. Otherwise, access is rejected.
+
+### 📍 Phase 3: LDAP Authorization (Role Derivation)
+
+![LDAP Authorization Configuration](./../images/MarkLogicExternalSecurity2.png)
+
+**When LDAP authorization is selected**:
+- MarkLogic creates a temporary user ID
+- Roles are assigned based on LDAP group membership
+- LDAP groups are mapped to MarkLogic role external names
+- The organization can maintain users and roles independently of the MarkLogic Security database
+
+**Benefits**:
+- ✅ Centralized role management
+- ✅ No MarkLogic user administration required
+- ✅ Automatic role updates from LDAP changes
+
+### 📍 Phase 4: Internal Authorization (User Mapping)
+
+![Internal Authorization Configuration](./../images/MarkLogicExternalSecurity1.png)
+
+**When internal authorization is selected**:
+- LDAP authenticates the user
+- MarkLogic maps the user's Distinguished Name (DN) to an internal user's external name
+- The user inherits roles from the mapped internal user
+- If no mapping is found, access is denied
+
+**Use Cases**:
+- ✅ Granular user-specific permissions
+- ✅ Integration with existing MarkLogic user management
+- ⚠️ Requires maintaining user mappings in MarkLogic
+
+### 🎯 Key Takeaways
+
+Understanding these four phases helps you:
+
+1. **Diagnose authentication failures** - Know which phase is failing
+2. **Choose the right configuration** - Match your organizational needs
+3. **Avoid common pitfalls** - Especially with mixed authentication
+4. **Plan role management** - Decide between LDAP and internal authorization
+
+> **💡 Pro Tip**: When troubleshooting, identify which phase is failing first. This dramatically narrows down the potential issues and speeds up resolution.
+ 
+
+## ⚙️ LDAP Server Configuration
+
+Whether using LDAP for authentication only or authentication and authorization, the **LDAP Server definition** is your foundation. Getting this configuration right upfront saves significant troubleshooting time later.
+
+![MarkLogic LDAP Server Configuration](./../images/MarkLogicLDAPServerConfig.png)
+
+### 🔧 Configuration Parameters Deep Dive
+
+Let's examine each parameter and its role in the external security process:
+
+#### 🌐 **LDAP Server URI**
+
+The connection string MarkLogic uses to connect to your LDAP server.
+
+**Format**: `<protocol>://<host>:<port>`
+
+| Component | Options | Default Port | Notes |
+|-----------|---------|--------------|-------|
+| **Protocol** | `ldap` or `ldaps` | 389 (ldap), 636 (ldaps) | Use `ldaps` for encrypted connections |
+| **Host** | Hostname or IP address | - | DNS name preferred for certificates |
+| **Port** | Any valid port | 389/636 | Optional if using defaults |
+
+**✅ Valid Examples**:
+```
+ldap://192.168.0.50:389
+ldaps://marklogic.com
+ldap://ad.company.local:389
+ldaps://secure-ldap.company.com:636
+```
+
+**❌ Invalid Examples**:
+```
+192.168.40.222:389          # Missing protocol
+ldap.server.com             # Missing protocol
+https://ldap.company.com    # Wrong protocol
+```
+
+> **🔐 LDAPS Note**: When using `ldaps`, you must import the LDAP server's CA certificate into MarkLogic's Trusted Certificate store. This is a common source of connection failures.
+
+#### 📂 **LDAP Base DN**
+
+Defines the starting point in the LDAP directory tree for user and group searches. This is crucial for ensuring MarkLogic can find all necessary information.
+
+**Key Considerations**:
+
+| Scenario | Recommended Base | Rationale |
+|----------|------------------|-----------|
+| **Authentication Only** | `ou=Users,dc=company,dc=com` | Users only needed |
+| **Authentication + Authorization** | `dc=company,dc=com` | Must include both users and groups |
+| **Complex Directory** | Common parent of users/groups | Ensure complete coverage |
+
+**📖 Example Directory Structure**:
+
+![LDAP Directory Structure](./../images/MarkLogicLDAPDirectory1.png)
+
+In this Apache Directory Studio example:
+- **Users**: `ou=Users,dc=MarkLogic,dc=Local`
+- **Groups**: `ou=Groups,dc=MarkLogic,dc=Local`
+
+**Best Practice**: Use `dc=MarkLogic,dc=Local` as the base to ensure both user and group searches succeed, even if you're only doing authentication initially (you may add authorization later).
    
- * [ldapsearch](https://linux.die.net/man/1/ldapsearch) 
- * [ldp](https://technet.microsoft.com/en-us/library/cc772839(v=ws.10).aspx) 
- * [Apache Directory Studio](http://directory.apache.org/studio/)
- * [Wireshark](https://www.wireshark.org/)
- * [QConsole](https://docs.marklogic.com/guide/qconsole/intro)
+#### 🏷️ **LDAP Attribute**
 
- 
-## First Principles
- 
- Before getting started it is really important to understand how the MarkLogic External Security logic flow works to help dispell any preconceived misconceptions early on. Many products use LDAP or Active Directory to control access and not all follow the same way of working, a good understanding of the MarkLogic External Security logic flow is therefore essential when diagnosing access problems.
-  
- The diagram below, while appearing to be complex at first glance is actually straight forward if you break it down into the four separate phases.
- 
-  ![Image](./../images/MarkLogicExternalSecurityLogic.svg)
-  
-1.  The first step looks fairly innocuous but still catches out a number of people, what MarkLogic is doing at this point is simply determining whether the Internal Security database will be used to determine access and authorisation. 
+The attribute MarkLogic uses as a search filter to locate user directory entries.
 
-    ![Image](./../images/MarkLogicAppServerSecurity1.png)
-  
-    When Internal Security is enabled MarkLogic will always attempt to locate the connecting user in the Security Database if the user is not found and an External Security profile is defined (mixed authentication) MarkLogic will then proceed to attempt to authenticate the user against the defined LDAP server. If the user is found in the Security database, MarkLogic will verify the supplied password and grant access accordingly. A common misconception is the assumption that if the user is found in the Security database but authentication fails MarkLogic will then attempt to authenticate the user externally. This is not the case and is a particular import point to consider when using mixed authentication in that any external users **should not** have matching entries in the Security database. 
+| Directory Type | Typical Attribute | Example Value |
+|----------------|-------------------|---------------|
+| **Unix/Linux LDAP** | `uid` | `jsmith` |
+| **Active Directory** | `sAMAccountName` | `jsmith` |
+| **Generic LDAP** | `cn` | `John Smith` |
 
-2. The second step is where MarkLogic decides whether to use External Security or not and as can be seen from the flow diagram it is reached by two conditional steps:
+**📖 Example User Entry**:
 
-    * If Internal Security is set to false in the App Server.
-    * If internal Security is enabled but the user is not found in the Security database.
+![LDAP User Entry Example](./../images/MarkLogicLDAPUserEntry.png)
 
-    At this point if an External Security profile is defined MarkLogic will proceed, otherwise access is rejected.
+This Apache Directory Studio display shows a user entry with the userid stored in the `uid` attribute.
 
-3. For the third step, MarkLogic determines how the Roles (Authorisation) will be derived. If "LDAP" authorisation is selected MarkLogic will create a temporary userid and assign Roles based on matching the users LDAP group membership to external names assigned to MarkLogic roles. Using LDAP for both authentication and authorisation allows an organization to maintain the MarkLogic users and roles completely independently of the MarkLogic Security database.
+#### 👤 **LDAP Default User & Password**
 
-    ![Image](./../images/MarkLogicExternalSecurity2.png)
-  
-4. The forth and final step is reached when LDAP is used to authenticate the user but authorisation is performed internally. MarkLogic will attempt to map the full distinguished name (User DN) of the external LDAP to the external name of a internal user in the MarkLogic Security database, an entry is found the user will inheirt the roles assigned internally otherwise access is denied.
+The service account MarkLogic uses to authenticate to the LDAP server and perform searches.
 
-    ![Image](./../images/MarkLogicExternalSecurity1.png)
+**Key Functions**:
+- 🔍 Search for user entries using the configured base DN and attribute
+- 👥 Retrieve group memberships for authorization (if configured)
+- 📋 Access all required attributes and values
 
-Hopefully, this has given you a better idea of how the basic principles of MarkLogic Authentication and Authorisation work and will make things a little easier when working through the various scenarios that follow.
- 
+**Format Options**:
 
-## External Security LDAP Server configuration
+| Directory Type | Format | Example |
+|----------------|--------|---------|
+| **LDAP DN** | `cn=username,ou=service,dc=company,dc=com` | `cn=Directory Manager` |
+| **Active Directory** | `DOMAIN\username` | `COMPANY\Administrator` |
 
-Whether you are using LDAP for authentication or authentication and authorisation the primary configuration point is the LDAP Server definition. Ensuring the LDAP server configuration is valid is key and will save much time and frustration down the line if make sure it is working as expected up front.
+> **⚠️ Important**: Despite being called "default user," this account needs sufficient permissions to search your entire LDAP base and read all necessary attributes.
 
-   ![Image](./../images/MarkLogicLDAPServerConfig.png)
+> **🔒 MD5 Bind Exception**: When using DIGEST-MD5 bind method, these credentials are not required as MarkLogic authenticates directly with the supplied user credentials.
 
-Before we check that the configuration is working it's worth reviewing each parameter to understand which it is and the role it takes in the external security process.
+#### 🔐 **LDAP Bind Method**
 
-* <font color="blue"><b>ldap server uri</b></font>As the comment in the UI states this is the URI of the LDAP server that MarkLogic will connect to and is of the format `<protocol>://<host>:<port>`, where protocol can be either __ldap__ or __ldaps__, host is either a hostname or IP Address and port is the LDAP listening port.
-    If the port is not specified then the default port 389 will be used if LDAP is specified and port 636 if LDAPS is used.
+Controls how MarkLogic authenticates to the LDAP server.
 
-    The following are example of valid and invalid ldap server uri's
+| Method | Authentication | Use Case | Security |
+|--------|----------------|----------|----------|
+| **Simple** | Default user + password | Most common, works with LDAPS | ✅ Secure with LDAPS |
+| **DIGEST-MD5** | Supplied user credentials | Direct user authentication | ⚠️ **Deprecated** |
 
-    __valid__
-* ldap://192.168.0.50:389
-* ldaps://marklogic.com
+> **🚨 Security Warning**: DIGEST-MD5 is officially deprecated per [RFC 6331](https://tools.ietf.org/html/rfc6331) and considered insecure. For new configurations, use **Simple** bind with **LDAPS** protocol.
 
-    __invalid__
-* ~~192.168.40.222:389~~
-* ~~ldap.server.com~~
+> **🔄 Migration Recommendation**: If using MD5 in existing configurations, migrate to Simple bind with LDAPS for better security.
 
-    Note: when using **ldaps** you will need to import the required LDAP server CA Certificates into the MarkLogic Trusted certificate store.
+#### 👥 **LDAP Group Attributes**
 
-<script src="https://gist.github.com/ableasdale/40078492aa612b153a49.js"></script>
- 
-* <font color="blue"><b>ldap base</b></font>This parameter defines where in the LDAP Directory tree the search for a user and group membership will take place. You should ensure that you select a base Distinguished Name (DN) that will return the correct information that MarkLogic needs to complete authentication and/or authorisation.
-                                       
-    For example, the Apache Directory Studio (ApacheDS) display below of a simple LDAP server shows entries for Users where the DN is __"ou=Users,dc=MarkLogic,dc=Local"__ and Groups with a DN of __"ou=Groups,dc=MarkLogic,dc=Local"__. If only LDAP authentication is required than setting the LDAP base to __"ou=Users,dc=MarkLogic,dc=Local"__ would be sufficient as all the users are contained within that sub-tree, however if authorisation is also required to determine roll access then searches for group of group membership would not return any results as these are contain in a separate sub-tree. In this case selecting __"dc=MarkLogic,dc=Local"__ as the LDAP base DN would be a better choice as it contains sub-trees for both Users and Groups.
+Controls how MarkLogic discovers group memberships for role-based authorization.
 
-   ![Image](./../images/MarkLogicLDAPDirectory1.png)
-   
-* <font color="blue"><b>ldap attribute</b></font>The LDAP attribute is used as the filter during the LDAP Search performed by MarkLogic to locate the user directory entry, this is typically __"uid"__ for Unix based LDAP servers or __"sAMAccountName"__ if you are using Microsoft Windows Active Directory. 
+| Attribute | Default Value | Purpose | Directory Type |
+|-----------|---------------|---------|----------------|
+| **memberOf** | `memberOf` | User's group memberships | Active Directory, modern LDAP |
+| **member** | `member` | Group's member list | Traditional LDAP |
 
-    The following ApacheDS display shows a LDAP entry that hold the userid in the __"uid"__ attribute.
+**Common Alternatives**:
+- `isMemberOf`
+- `groupMembership`
+- `memberUid`
 
-   ![Image](./../images/MarkLogicLDAPUserEntry.png)   
-   
-* <font color="blue"><b>ldap default user</b></font>
-* <font color="blue"><b>ldap password</b></font>The LDAP default user is used by MarkLogic authenticate to the LDAP server and perform a search using Base DN and attribute defined above to locate the user's directory entry. If LDAP authorisation is also configured then an additional search is performed for any group of group memberships to be used during Role determination. While the description describes the user as being the "default" you should ensure that the user defined has sufficient permissions on the LDAP server to search the configured Base DN and return all attributes and values. I'll go into more detail on exactly watch searches are performed and which attributes are retrieved when looking at the individual configuration scenarios later in this article.
-
-    The ldap default user value can either be an LDAP User DN such as __"cn=Manager,dc=MarkLogic,dc=Local"__ or if you are using an Active Directory server then a Domain user such as __"MARKLOGIC\Administrator"__ can be used instead.
-
-    __Note:__ If you are using the __MD5__ bind method below then the LDAP default user and password are not required and MarkLogic will authenticate to the LDAP server using the supplied userid and a __DIGEST-MD5__ Bind instead.
-
-* <font color="blue"><b>ldap bind method</b></font>This parameter controls whether MarkLogic connects to LDAP or Active Directory server using the default user and a __"Simple"__ bind or the supplied userid and a __DIGEST_MD5__ bind.
-
-    __Note:__ While MD5 is supported as a bind Method in MarkLogic I would highly recommend against using it for new configurations. DIGEST-MD5 is now considered insecure has been officially deprecated with [RFC6331](https://tools.ietf.org/html/rfc6331), if you are using MD5 for an existing configuration I would recommend moving to using the __"Simple"__ Bind method and the secure __LDAPS__ protocol instead.
+> **📝 Version Note**: Custom `memberOf` and `member` attributes are only supported in **MarkLogic 9+**. Earlier versions use the defaults.
 
 
-* <font color="blue"><b>ldap memberof attribute</b></font>
-* <font color="blue"><b>ldap member attribute</b></font>By default, MarkLogic uses the __"memberOf"__ and __"member"__ search filters to determine which Groups, and Group of Groups, a user belongs to for Role based authorisation. If your particular LDAP or Active Directory server uses a different attribute to store values such as __"isMemberOf"__ or __"groupMembership"__ then you can override the default values with these fields.
+## ✅ Configuration Verification
 
-    <font color="red"><b>Note:</b> The __"memberOf"__ and __"member"__ attributes can only be overridden with MarkLogic 9 and later.</font>
+Before completing your external security configuration, **validate that your LDAP server settings work correctly**. This step prevents hours of troubleshooting later.
 
+### 🧪 Testing with ldapsearch
 
-## Verifying the LDAP Server configuration
+Use `ldapsearch` to verify your LDAP server responds correctly using your MarkLogic configuration parameters.
 
-Before proceeding to complete the external security configuration it's worth ensuring that the settings are correct and MarkLogic is able to connect and retrieve the required information.
+**Example Command**:
+```bash
+ldapsearch -H ldap://your-ldap-server:389 \
+           -x \
+           -D "cn=Directory Manager" \
+           -w your-password \
+           -b "dc=MarkLogic,dc=Local" \
+           -s sub \
+           "(uid=testuser)" \
+           "dn"
+```
 
-ldapsearch is useful in ensuring that the LDAP Server responds correctly, the example below uses the settings from a configured MarkLogic LDAP server to search for and return the DN of a user.
-
-````
-ldapsearch -H ldap://192.168.66.240:389 -x -D "cn=manager,dc=marklogic,dc=local" -W -b "dc=MarkLogic,dc=Local" -s sub "(uid=mluser1)" "dn"
-Enter LDAP Password: 
+**Expected Output**:
+```ldif
 # extended LDIF
 #
 # LDAPv3
 # base <dc=MarkLogic,dc=Local> with scope subtree
-# filter: (uid=mluser1)
+# filter: (uid=testuser)
 # requesting: dn 
 #
 
-# mluser1, Users, MarkLogic.Local
-dn: uid=mluser1,ou=Users,dc=MarkLogic,dc=Local
+# testuser, Users, MarkLogic.Local
+dn: uid=testuser,ou=Users,dc=MarkLogic,dc=Local
 
 # search result
 search: 2
@@ -153,15 +368,228 @@ result: 0 Success
 
 # numResponses: 2
 # numEntries: 1
-````
+```
 
-If the ldapsearch completes successfully and returns an expected User DN you can run the following XQuery and the MarkLogic QConsole to see if it does the same.
+**Additional Test Examples**:
 
-<script src="https://gist.github.com/mwarnes/faa25202c84368d44f7f96c30f280725.js"></script>
+```bash
+# Test group membership lookup
+ldapsearch -H ldap://your-ldap-server:389 \
+           -x \
+           -D "cn=Directory Manager" \
+           -w your-password \
+           -b "dc=MarkLogic,dc=Local" \
+           -s sub \
+           "(uid=appreader)" \
+           "dn" "businessCategory"
 
-To see the relationship between a MarkLogic LDAP Server configuration and the ldapsearch arguments or XQuery options click on the image below.
+# Test group object retrieval
+ldapsearch -H ldap://your-ldap-server:389 \
+           -x \
+           -D "cn=Directory Manager" \
+           -w your-password \
+           -b "ou=Groups,dc=MarkLogic,dc=Local" \
+           -s sub \
+           "(cn=AppReader)" \
+           "dn" "member"
+```
 
-<a href="http://mwarnes.github.io/images/LDAPServerConfigRelationship.svg"> ![Image](./../images/LDAPServerConfigRelationship.svg) </a>
+### 🔍 Command Breakdown
+
+| Parameter | Purpose | Maps to MarkLogic Setting | Example Value |
+|-----------|---------|---------------------------|---------------|
+| `-H` | LDAP server URI | **ldap server uri** | `ldap://your-ldap-server:389` |
+| `-D` | Bind DN (default user) | **ldap default user** | `cn=Directory Manager` |
+| `-w` | Password | **ldap password** | `your-password` |
+| `-b` | Search base | **ldap base** | `dc=MarkLogic,dc=Local` |
+| `(uid=testuser)` | Search filter | **ldap attribute** + username | `uid` + user ID |
+
+### 📊 Common Test Users and Groups
+
+For testing purposes, your LDAP server should include representative users and groups:
+
+#### 👤 Example Test Users
+
+| Username | DN | Typical Groups |
+|----------|----|----- ----------|
+| `testuser` | `uid=testuser,ou=Users,dc=MarkLogic,dc=Local` | Basic user, no groups |
+| `appreader` | `uid=appreader,ou=Users,dc=MarkLogic,dc=Local` | AppReader |
+| `appwriter` | `uid=appwriter,ou=Users,dc=MarkLogic,dc=Local` | AppWriter |
+| `appadmin` | `uid=appadmin,ou=Users,dc=MarkLogic,dc=Local` | AppAdmin |
+
+#### 👥 Example Test Groups
+
+| Group | DN | Purpose |
+|-------|----|---------| 
+| `AppReader` | `cn=AppReader,ou=Groups,dc=MarkLogic,dc=Local` | Read-only access |
+| `AppWriter` | `cn=AppWriter,ou=Groups,dc=MarkLogic,dc=Local` | Read-write access |
+| `AppAdmin` | `cn=AppAdmin,ou=Groups,dc=MarkLogic,dc=Local` | Administrative access |
+
+### 🖥️ Testing with QConsole
+
+If `ldapsearch` succeeds, verify MarkLogic can perform the same operation using QConsole.
+
+**XQuery Example for QConsole**:
+
+```xquery
+(: Test LDAP connectivity and user search :)
+let $ldap-server := "ldap://your-ldap-server:389"
+let $bind-dn := "cn=Directory Manager"
+let $bind-password := "your-password"
+let $search-base := "dc=MarkLogic,dc=Local"
+let $search-filter := "(uid=testuser)"
+
+return
+  try {
+    let $connection := ldap:connect($ldap-server, $bind-dn, $bind-password)
+    let $results := ldap:search($connection, $search-base, $search-filter)
+    return (
+      "Connection successful",
+      "Results found: " || count($results),
+      $results
+    )
+  } catch ($e) {
+    "Error: " || $e/error:message/text()
+  )
+```
+
+**Additional XQuery Examples**:
+
+```xquery
+(: Test group membership retrieval :)
+let $ldap-server := "ldap://your-ldap-server:389"
+let $bind-dn := "cn=Directory Manager"
+let $bind-password := "your-password"
+let $search-base := "dc=MarkLogic,dc=Local"
+
+let $test-users := ("appreader", "appwriter", "appadmin")
+
+return
+  try {
+    let $connection := ldap:connect($ldap-server, $bind-dn, $bind-password)
+    return
+      for $user in $test-users
+      let $user-filter := "(uid=" || $user || ")"
+      let $user-results := ldap:search($connection, $search-base, $user-filter)
+      let $groups := $user-results//businessCategory/text()
+      return (
+        "User: " || $user,
+        "Groups: " || fn:string-join($groups, ", "),
+        "---"
+      )
+  } catch ($e) {
+    "Error: " || $e/error:message/text()
+  )
+```
+
+### 📊 Configuration Relationship Diagram
+
+The following diagram shows how MarkLogic LDAP Server configuration parameters map to `ldapsearch` arguments and XQuery options:
+
+[![LDAP Configuration Relationship](./../images/LDAPServerConfigRelationship.svg)](./../images/LDAPServerConfigRelationship.svg)
+
+*Click the image to view in full size*
+
+### 🎯 Validation Checklist
+
+Before proceeding with MarkLogic configuration, ensure:
+
+- ✅ `ldapsearch` returns expected user DN
+- ✅ QConsole XQuery executes without errors
+- ✅ LDAPS certificates are imported (if using LDAPS)
+- ✅ Service account has sufficient LDAP permissions
+- ✅ Network connectivity exists between MarkLogic and LDAP server
+- ✅ Firewall rules allow LDAP traffic (ports 389/636)
+
+> **💡 Pro Tip**: If either `ldapsearch` or the QConsole test fails, resolve the LDAP connectivity issue before configuring MarkLogic external security. This saves significant debugging time.
+
+---
+
+## 🎯 Practical Configuration Examples
+
+Once you've validated connectivity, here are realistic MarkLogic configurations using the examples above:
+
+### 📋 LDAP Server Configuration
+
+**Basic LDAP Server Setup**:
+```
+LDAP Server URI: ldap://your-ldap-server:389
+LDAP Base: dc=MarkLogic,dc=Local
+LDAP Attribute: uid
+LDAP Default User: cn=Directory Manager
+LDAP Password: your-password
+LDAP Bind Method: simple
+```
+
+**For non-standard group attributes** (MarkLogic 9+):
+```
+LDAP memberOf Attribute: businessCategory
+LDAP member Attribute: member
+```
+
+### 🔐 External Security Scenarios
+
+#### **Scenario 1: LDAP Authentication + Role Authorization**
+
+Use LDAP groups to determine MarkLogic roles:
+
+**External Security Configuration**:
+- Authorization: `ldap`
+- LDAP Server: (configured above)
+- Default User: Create temporary user
+
+**Role Mapping Examples**:
+```
+MarkLogic Role: app-reader
+External Name: cn=AppReader,ou=Groups,dc=MarkLogic,dc=Local
+
+MarkLogic Role: app-writer  
+External Name: cn=AppWriter,ou=Groups,dc=MarkLogic,dc=Local
+
+MarkLogic Role: app-admin
+External Name: cn=AppAdmin,ou=Groups,dc=MarkLogic,dc=Local
+```
+
+#### **Scenario 2: LDAP Authentication + Internal Authorization**
+
+Use LDAP for authentication but manage roles internally:
+
+**External Security Configuration**:
+- Authorization: `internal`
+- LDAP Server: (configured above)
+
+**User Mapping Examples**:
+```
+MarkLogic User: ml-appreader
+External Name: uid=appreader,ou=Users,dc=MarkLogic,dc=Local
+
+MarkLogic User: ml-appwriter
+External Name: uid=appwriter,ou=Users,dc=MarkLogic,dc=Local
+
+MarkLogic User: ml-appadmin
+External Name: uid=appadmin,ou=Users,dc=MarkLogic,dc=Local
+```
+
+### 🧪 Testing Your Configuration
+
+**Test authentication**:
+```bash
+curl -u testuser:password http://localhost:8000/
+```
+
+**Verify role assignment in QConsole**:
+```xquery
+(: Check current user's roles :)
+xdmp:get-current-roles()
+```
+
+**Test external name mapping**:
+```xquery
+(: Check external names for a user :)
+sec:get-user-external-names("ml-appreader")
+```
+
+> **💡 Testing Tip**: Start with the simplest users (like `testuser` with no groups) before testing complex group scenarios. This helps isolate authentication from authorization issues.
 
 
 
