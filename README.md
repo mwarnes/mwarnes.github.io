@@ -28,13 +28,16 @@ Created and maintained by Martin Warnes, a MarkLogic security specialist with ex
 
 ---
 
-## 📚 Article Index
+## 📚 Available Articles
 
-### 🔍 **Troubleshooting & Diagnostics**
-
-| Article | Focus Area | Updated | Status |
-|---------|------------|---------|---------|
-| **[External Authentication Troubleshooting](./articles/EATROUBLESHOOTING.md)** | LDAP & Active Directory | 2025 | ✅ Available |
+| Article | Focus Area | Skill Level | Last Updated |
+|---------|------------|-------------|---------------|
+| **[LDAP Troubleshooting](articles/LDAP-TROUBLESHOOTING.md)** | LDAP/Active Directory External Authentication | Intermediate-Advanced | Oct 2024 |
+| **[SAML Troubleshooting](articles/SAML-TROUBLESHOOTING.md)** | SAML 2.0 SSO Integration | Intermediate-Advanced | Oct 2024 |
+| **[OAuth 2.0 Troubleshooting](articles/OAUTH2-TROUBLESHOOTING.md)** | JWT Token API Authentication | Intermediate-Advanced | Oct 2024 |
+| **[Kerberos Troubleshooting](articles/KERBEROS-TROUBLESHOOTING.md)** | Domain Single Sign-On Authentication | Advanced | Oct 2024 |
+| **[Network Troubleshooting](articles/NETWORK_TROUBLESHOOTING.md)** | Packet Analysis with Wireshark | Advanced | Oct 2024 |
+| **[TLS Certificate Management](articles/TLS_CERTIFICATE_MANAGEMENT.md)** | OpenSSL & Java KeyStore Operations | Intermediate-Advanced | Oct 2024 |
 
 ### 🔐 **Protocol Guides** *(Coming Soon)*
 
@@ -59,11 +62,12 @@ Created and maintained by Martin Warnes, a MarkLogic security specialist with ex
 
 ### New to MarkLogic Security?
 
-1. **Start Here**: [External Authentication Troubleshooting](./articles/EATROUBLESHOOTING.md)
-2. **Understand the Basics**: Review MarkLogic's [official security documentation](https://docs.marklogic.com/guide/security)
-3. **Choose Your Protocol**: Select the authentication method that fits your organization
-4. **Follow the Guides**: Use our step-by-step configuration instructions
-5. **Test Thoroughly**: Implement proper testing and validation procedures
+1. **Start Here**: [LDAP/Active Directory Troubleshooting](./articles/LDAP-TROUBLESHOOTING.md) or [SAML 2.0 Authentication](./articles/SAML-TROUBLESHOOTING.md)
+2. **Learn the Tools**: [Network Troubleshooting](./articles/NETWORK_TROUBLESHOOTING.md) and [TLS Certificate Management](./articles/TLS_CERTIFICATE_MANAGEMENT.md)
+3. **Understand the Basics**: Review MarkLogic's [official security documentation](https://docs.marklogic.com/guide/security)
+4. **Choose Your Protocol**: Select the authentication method that fits your organization
+5. **Follow the Guides**: Use our step-by-step configuration instructions
+6. **Test Thoroughly**: Implement proper testing and validation procedures
 
 ### Essential Tools
 
@@ -71,9 +75,9 @@ Before diving into MarkLogic security configuration, familiarize yourself with t
 
 - **ldapsearch** / **ldp** - LDAP client testing
 - **Apache Directory Studio** - LDAP browser and management
-- **Wireshark** - Network protocol analysis
+- **Wireshark** / **tcpdump** - Network protocol analysis ([Guide](./articles/NETWORK_TROUBLESHOOTING.md))
+- **OpenSSL** / **Java KeyStore** - Certificate and TLS management ([Guide](./articles/TLS_CERTIFICATE_MANAGEMENT.md))
 - **QConsole** - MarkLogic query testing
-- **openssl** - Certificate and TLS testing
 
 ---
 
@@ -81,7 +85,7 @@ Before diving into MarkLogic security configuration, familiarize yourself with t
 
 ### 🔥 Most Popular
 
-**[Troubleshooting MarkLogic External Authentication (LDAP & Active Directory)](./articles/EATROUBLESHOOTING.md)**
+**[LDAP/Active Directory Troubleshooting](./articles/LDAP-TROUBLESHOOTING.md)**
 
 *A comprehensive guide to diagnosing and resolving LDAP and Active Directory authentication issues in MarkLogic. Covers the complete authentication flow, common pitfalls, and practical debugging techniques.*
 
@@ -131,8 +135,8 @@ Found an error or have a suggestion? I welcome feedback and contributions:
 
 ## 📊 Site Statistics
 
-- **Total Articles**: 1 (with 4+ in development)
-- **Coverage**: LDAP, Active Directory, External Authentication
+- **Total Articles**: 6 comprehensive guides
+- **Coverage**: LDAP, SAML 2.0, OAuth 2.0, Kerberos, Network Analysis, TLS/SSL Certificates
 - **Focus**: Enterprise security and troubleshooting
 - **Audience**: MarkLogic administrators and developers
 - **Last Updated**: October 2025

@@ -54,6 +54,8 @@ MarkLogic provides several external security authentication methods:
 | **Mixed Authentication** | Combination of internal and external authentication | All versions |
 
 > **📝 Note**: Certificate-based authentication methods are only available in [MarkLogic 9+](https://docs.marklogic.com/guide/security/authentication#id_28959)
+>
+> 🔐 **Certificate Setup**: For creating and managing X.509 certificates, see our [TLS Certificate Management Guide](../TLS_CERTIFICATE_MANAGEMENT.md).
  
 ## 🛠️ Essential Tools
 
@@ -109,6 +111,8 @@ Network protocol analyzer that captures and analyzes LDAP traffic between MarkLo
 - Connection troubleshooting
 - Performance analysis
 
+> 📊 **Advanced Analysis**: For comprehensive packet capture techniques and Wireshark usage, see our [Network Troubleshooting Guide](../NETWORK_TROUBLESHOOTING.md).
+
 #### **QConsole** (MarkLogic)
 MarkLogic's built-in query console for testing XQuery operations and validating LDAP configurations.
 
@@ -123,7 +127,7 @@ MarkLogic's built-in query console for testing XQuery operations and validating 
 - **[ldapsearch Manual](https://linux.die.net/man/1/ldapsearch)** - Command-line reference
 - **[LDP Documentation](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc772839(v=ws.10))** - Microsoft LDAP tool
 - **[Apache Directory Studio](http://directory.apache.org/studio/)** - Download and documentation
-- **[Wireshark](https://www.wireshark.org/)** - Network analysis tool
+- **[Wireshark](https://www.wireshark.org/)** - Network analysis tool ([Usage Guide](../NETWORK_TROUBLESHOOTING.md))
 - **[QConsole Guide](https://docs.marklogic.com/guide/qconsole/intro)** - MarkLogic query console
 
 > **💡 Pro Tip**: Start with `ldapsearch` or `ldp` to validate basic LDAP connectivity before configuring MarkLogic. This approach isolates LDAP server issues from MarkLogic configuration problems.
@@ -240,6 +244,8 @@ https://ldap.company.com    # Wrong protocol
 ```
 
 > **🔐 LDAPS Note**: When using `ldaps`, you must import the LDAP server's CA certificate into MarkLogic's Trusted Certificate store. This is a common source of connection failures.
+>
+> 🔧 **Certificate Management**: For comprehensive certificate operations, see our [TLS Certificate Management Guide](../TLS_CERTIFICATE_MANAGEMENT.md).
 
 #### 📂 **LDAP Base DN**
 
