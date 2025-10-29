@@ -124,122 +124,102 @@ User identifier formats:
 ### 📋 **External Security Configuration**
 
 #### **Basic SAML Setup**
-```xquery
-(: Create SAML external security configuration :)
-import module namespace sec = "http://marklogic.com/xdmp/security" 
-  at "/MarkLogic/security.xqy";
-
-sec:create-external-security(
-  "saml-config",
-  "Basic SAML configuration for SSO",
-  "saml",
-  map:new((
-    map:entry("authentication", "saml"),
-    map:entry("cache-timeout", 300),
-    map:entry("authorization", "internal")
-  ))
-)
+```bash
+curl -X POST --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "external-security-name": "SAML-Keycloak",
+    "description": "SAML configuration for Keycloak IdP",
+    "authentication": "saml",
+    "cache-timeout": 300,
+    "authorization": "internal",
+    "saml-server": {
+      "saml-idp-entity-id": "https://keycloak.example.com/realms/marklogic",
+      "saml-sp-entity-id": "https://marklogic.example.com/saml/sp",
+      "saml-idp-sso-url": "https://keycloak.example.com/realms/marklogic/protocol/saml",
+      "saml-acs-url": "https://marklogic.example.com:8443/saml/acs",
+      "saml-want-assertions-signed": true,
+      "saml-want-authn-requests-signed": false,
+      "saml-attribute-names": ["role", "email", "name"]
+    }
+  }' \
+  "http://saml.warnesnet.com:8002/manage/v2/external-security"
 ```
 
 #### **SAML External Security Options**
 
 | Parameter | Description | Example | Notes |
 |-----------|-------------|---------|-------|
+| **external-security-name** | Name of the external security configuration | `"SAML-Keycloak"` | Unique identifier for the config |
+| **description** | Description of the configuration | `"SAML configuration for Keycloak IdP"` | Optional descriptive text |
 | **authentication** | Authentication method | `"saml"` | Required for SAML |
 | **authorization** | Authorization source | `"internal"` or `"saml"` | Controls role assignment |
 | **cache-timeout** | Session cache duration (seconds) | `300` | Default: 300 seconds |
-| **saml-attribute-names** | Attribute mapping | `("role", "department")` | Maps SAML attributes |
-| **saml-default-role** | Fallback role | `"user"` | When no roles provided |
-| **saml-idp-certificate** | IdP signing certificate | Certificate ID | Required for signature validation |
+| **saml-idp-entity-id** | Identity Provider entity ID | `"https://keycloak.example.com/realms/marklogic"` | Unique IdP identifier |
+| **saml-sp-entity-id** | Service Provider entity ID | `"https://marklogic.example.com/saml/sp"` | MarkLogic SP identifier |
+| **saml-idp-sso-url** | IdP Single Sign-On URL | `"https://keycloak.example.com/realms/marklogic/protocol/saml"` | IdP authentication endpoint |
+| **saml-acs-url** | Assertion Consumer Service URL | `"https://marklogic.example.com:8443/saml/acs"` | MarkLogic callback endpoint |
+| **saml-want-assertions-signed** | Require signed assertions | `true` | Enables signature validation |
+| **saml-want-authn-requests-signed** | Sign authentication requests | `false` | MarkLogic signs outbound requests |
+| **saml-attribute-names** | SAML attribute mapping | `["role", "email", "name"]` | Maps SAML attributes to user properties |
 
 ### 🔐 **Certificate Configuration**
 
 #### **Import IdP Certificate**
-```xquery
-(: Import Identity Provider's signing certificate :)
-import module namespace pki = "http://marklogic.com/xdmp/pki" 
-  at "/MarkLogic/pki.xqy";
-
-(: Read certificate from file or paste PEM content :)
-let $cert-pem := '-----BEGIN CERTIFICATE-----
-MIIDyzCCArOgAwIBAgIUVfpV56K9w6BsaPh9Wd6nRzF4zB0wDQYJKoZIhvcNAQEL...
------END CERTIFICATE-----'
-
-return pki:insert-trusted-certificates(
-  pki:certificate-template(
-    "saml-idp-cert",
-    "SAML Identity Provider Certificate", 
-    $cert-pem
-  )
-)
+```bash
+curl -X POST --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "certificate-template": {
+      "template-id": "saml-idp-cert",
+      "template-name": "SAML Identity Provider Certificate",
+      "template-description": "Certificate for validating SAML assertions from Keycloak IdP",
+      "certificate-pem": "-----BEGIN CERTIFICATE-----\nMIIDyzCCArOgAwIBAgIUVfpV56K9w6BsaPh9Wd6nRzF4zB0wDQYJKoZIhvcNAQEL...\n-----END CERTIFICATE-----"
+    }
+  }' \
+  "http://saml.warnesnet.com:8002/manage/v2/certificate-templates"
 ```
 
-#### **Certificate Template with Details**
-```xquery
-(: Create detailed certificate template :)
-let $template := pki:certificate-template(
-  "saml-idp-signing",
-  "SAML IdP Signing Certificate",
-  $certificate-pem
-)
-let $template := pki:template-set-version($template, "0")
-let $template := pki:template-set-subject($template, 
-  "CN=SAML Signing Certificate,O=Organization,C=US")
+If you need to add the certificate to the external security configuration:
 
-return pki:insert-trusted-certificates($template)
+```bash
+curl -X PUT --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "saml-server": {
+      "saml-idp-certificate": "saml-idp-cert"
+    }
+  }' \
+  "http://saml.warnesnet.com:8002/manage/v2/external-security/SAML-Keycloak"
 ```
 
 ### 🌐 **App Server Configuration**
 
 #### **Configure SAML Authentication**
-```xquery
-(: Configure App Server for SAML authentication :)
-import module namespace admin = "http://marklogic.com/xdmp/admin" 
-  at "/MarkLogic/admin.xqy";
-
-let $config := admin:get-configuration()
-let $appserver-id := admin:appserver-get-id($config, 
-  admin:group-get-id($config, "Default"), "my-app-server")
-
-(: Set authentication to SAML external security :)
-let $config := admin:appserver-set-authentication($config, 
-  $appserver-id, "external-security")
-let $config := admin:appserver-set-external-security($config, 
-  $appserver-id, "saml-config")
-
-(: Configure SAML-specific settings :)
-let $config := admin:appserver-set-saml-idp-entity-id($config, 
-  $appserver-id, "http://idp.example.com/saml/metadata")
-let $config := admin:appserver-set-saml-sp-entity-id($config, 
-  $appserver-id, "http://marklogic.example.com/saml/sp")
-let $config := admin:appserver-set-saml-idp-sso-url($config, 
-  $appserver-id, "http://idp.example.com/saml/sso")
-
-return admin:save-configuration($config)
+```bash
+curl -X PUT --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "authentication": "external-security",
+    "external-security": "SAML-Keycloak"
+  }' \
+  "http://saml.warnesnet.com:8002/manage/v2/servers/my-app-server/properties"
 ```
 
-#### **Advanced App Server Settings**
-```xquery
-(: Additional SAML App Server configuration :)
-let $config := admin:get-configuration()
-let $appserver-id := admin:appserver-get-id($config, 
-  admin:group-get-id($config, "Default"), "my-app-server")
-
-(: Configure SAML assertion consumer service :)
-let $config := admin:appserver-set-saml-acs-url($config, 
-  $appserver-id, "http://marklogic.example.com/saml/acs")
-
-(: Set signature validation :)
-let $config := admin:appserver-set-saml-want-assertions-signed($config, 
-  $appserver-id, fn:true())
-let $config := admin:appserver-set-saml-want-authn-requests-signed($config, 
-  $appserver-id, fn:false())
-
-(: Configure attribute mapping :)
-let $config := admin:appserver-set-saml-attribute-names($config, 
-  $appserver-id, ("role", "department", "email"))
-
-return admin:save-configuration($config)
+#### **Configure App Server SAML Properties**
+```bash
+curl -X PUT --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "saml-idp-entity-id": "https://keycloak.example.com/realms/marklogic",
+    "saml-sp-entity-id": "https://marklogic.example.com/saml/sp",
+    "saml-idp-sso-url": "https://keycloak.example.com/realms/marklogic/protocol/saml",
+    "saml-acs-url": "https://marklogic.example.com:8443/saml/acs",
+    "saml-want-assertions-signed": true,
+    "saml-want-authn-requests-signed": false,
+    "saml-attribute-names": ["role", "email", "name"]
+  }' \
+  "http://saml.warnesnet.com:8002/manage/v2/servers/my-app-server/properties"
 ```
 
 ---
