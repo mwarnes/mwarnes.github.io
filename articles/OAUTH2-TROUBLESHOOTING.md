@@ -65,6 +65,7 @@ Issues access tokens after successful authentication and authorization.
 - Google Identity Platform
 - AWS Cognito
 - Okta
+- Keycloak
 - MLEAProxy (Development/Testing)
 
 #### **Resource Server**
@@ -152,125 +153,76 @@ Define the level of access granted to the client.
 ### 📋 **External Security Configuration**
 
 #### **Basic OAuth Setup**
-```xquery
-(: Create OAuth external security configuration :)
-import module namespace sec = "http://marklogic.com/xdmp/security" 
-  at "/MarkLogic/security.xqy";
+```bash
+curl -X POST --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "external-security-name": "OAUTH2-test",
+    "description": "OAuth2 test configuration",
+    "authentication": "oauth",
+    "cache-timeout": 300,
+    "authorization": "oauth",
+    "oauth-server": {
+      "oauth-vendor": "Other",
+      "oauth-flow-type": "Resource server",
+      "oauth-client-id": "marklogic",
+      "oauth-jwt-issuer-uri": "https://your-oauth-provider.com",
+      "oauth-token-type": "JSON Web Tokens",
+      "oauth-username-attribute": "preferred_username",
+      "oauth-role-attribute": "marklogic-roles",
+      "oauth-privilege-attribute": "",
+      "oauth-jwt-alg": "RS256",
+      "oauth-jwks-uri": "https://your-oauth-provider.com/jwks"
+    }
+  }' \
+  "http://oauth.warnesnet.com:8002/manage/v2/external-security"
+```
 
-sec:create-external-security(
-  "oauth-config",
-  "OAuth 2.0 JWT Token Authentication",
-  "oauth2",
-  map:new((
-    map:entry("authentication", "oauth2"),
-    map:entry("cache-timeout", 300),
-    map:entry("authorization", "internal"),
-    map:entry("oauth-issuer", "https://auth.example.com"),
-    map:entry("oauth-signing-key", "oauth-signing-cert")
-  ))
-)
+If you are using JWT Secrets these need to be added seperately
+
+```bash
+curl -X POST --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "oauth-server": {
+      "oauth-jwt-secret": [
+        {
+          "oauth-jwt-key-id": "DCYjkxqf7xLskUc_9tlaJ8-2QC4Vx-G1nPC1qPQro1Q",
+          "oauth-jwt-secret-value": "-----BEGIN PUBLIC KEY-----\n[YOUR_PEM_KEY_HERE]\n-----END PUBLIC KEY-----"
+        },
+        {
+          "oauth-jwt-key-id": "GPbsBv5V6BvCQ0QPLeC_10hzdLSuc2FRow-L0j3JE5Y",
+          "oauth-jwt-secret-value": "-----BEGIN PUBLIC KEY-----\n[YOUR_PEM_KEY_HERE]\n-----END PUBLIC KEY-----"
+        }
+      ]
+    }
+  }' \
+  "http://oauth.warnesnet.com:8002/manage/v2/external-security/OAUTH2-test/jwt-secrets"
+
 ```
 
 #### **OAuth External Security Options**
 
 | Parameter | Description | Example | Notes |
 |-----------|-------------|---------|-------|
-| **authentication** | Authentication method | `"oauth2"` | Required for OAuth |
-| **authorization** | Authorization source | `"internal"` or `"oauth2"` | Controls role assignment |
+| **external-security-name** | Name of the external security configuration | `"OAUTH2-test"` | Unique identifier for the config |
+| **description** | Description of the configuration | `"OAuth2 test configuration"` | Optional descriptive text |
+| **authentication** | Authentication method | `"oauth"` | Required for OAuth |
+| **authorization** | Authorization source | `"oauth"` | Controls role assignment |
 | **cache-timeout** | Token cache duration (seconds) | `300` | Default: 300 seconds |
-| **oauth-issuer** | Token issuer URL | `"https://auth.example.com"` | Must match token iss claim |
-| **oauth-signing-key** | JWT signing certificate | Certificate ID | Required for signature validation |
-| **oauth-audience** | Expected audience | `"marklogic-api"` | Validates aud claim |
-
-### 🔐 **JWT Signing Certificate Configuration**
-
-#### **Import OAuth Signing Certificate**
-```xquery
-(: Import OAuth authorization server's signing certificate :)
-import module namespace pki = "http://marklogic.com/xdmp/pki" 
-  at "/MarkLogic/pki.xqy";
-
-(: Read certificate from authorization server's JWKS endpoint or file :)
-let $cert-pem := '-----BEGIN CERTIFICATE-----
-MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF...
------END CERTIFICATE-----'
-
-return pki:insert-trusted-certificates(
-  pki:certificate-template(
-    "oauth-signing-cert",
-    "OAuth Authorization Server Signing Certificate", 
-    $cert-pem
-  )
-)
-```
-
-#### **JWKS Integration**
-```xquery
-(: Import certificate from JWKS endpoint :)
-let $jwks-response := xdmp:http-get("https://auth.example.com/.well-known/jwks.json")
-let $jwks := $jwks-response[2]
-let $signing-key := $jwks/keys[use = "sig"][1]
-
-(: Convert JWK to certificate and import :)
-(: Note: This requires additional JWK-to-certificate conversion logic :)
-let $cert-pem := local:jwk-to-certificate($signing-key)
-return pki:insert-trusted-certificates(
-  pki:certificate-template(
-    "oauth-jwks-cert",
-    "OAuth JWKS Signing Certificate",
-    $cert-pem
-  )
-)
-```
-
-### 🌐 **App Server Configuration**
-
-#### **Configure OAuth Authentication**
-```xquery
-(: Configure App Server for OAuth authentication :)
-import module namespace admin = "http://marklogic.com/xdmp/admin" 
-  at "/MarkLogic/admin.xqy";
-
-let $config := admin:get-configuration()
-let $appserver-id := admin:appserver-get-id($config, 
-  admin:group-get-id($config, "Default"), "api-server")
-
-(: Set authentication to OAuth external security :)
-let $config := admin:appserver-set-authentication($config, 
-  $appserver-id, "external-security")
-let $config := admin:appserver-set-external-security($config, 
-  $appserver-id, "oauth-config")
-
-(: Configure OAuth-specific settings :)
-let $config := admin:appserver-set-oauth-issuer($config, 
-  $appserver-id, "https://auth.example.com")
-let $config := admin:appserver-set-oauth-audience($config, 
-  $appserver-id, "marklogic-api")
-
-return admin:save-configuration($config)
-```
-
-#### **Advanced OAuth App Server Settings**
-```xquery
-(: Additional OAuth App Server configuration :)
-let $config := admin:get-configuration()
-let $appserver-id := admin:appserver-get-id($config, 
-  admin:group-get-id($config, "Default"), "api-server")
-
-(: Configure token validation settings :)
-let $config := admin:appserver-set-oauth-token-endpoint($config, 
-  $appserver-id, "https://auth.example.com/oauth/token")
-let $config := admin:appserver-set-oauth-jwks-uri($config, 
-  $appserver-id, "https://auth.example.com/.well-known/jwks.json")
-
-(: Set token validation parameters :)
-let $config := admin:appserver-set-oauth-clock-skew-seconds($config, 
-  $appserver-id, 300)
-let $config := admin:appserver-set-oauth-required-scopes($config, 
-  $appserver-id, ("read:api", "write:documents"))
-
-return admin:save-configuration($config)
-```
+| **oauth-vendor** | OAuth vendor type | `"Other", "Microsoft Entra", "Amazon Cognito"` | Vendor-specific settings |
+| **oauth-flow-type** | OAuth flow type | `"Resource server"` | Defines MarkLogic's role |
+| **oauth-client-id** | OAuth client identifier | `"marklogic"` | Client ID for this resource server |
+| **oauth-jwt-issuer-uri** | Token issuer URL | `"https://your-oauth-provider.com"` | Must match token iss claim |
+| **oauth-token-type** | Token format type | `"JSON Web Tokens"` | Specifies JWT token format |
+| **oauth-username-attribute** | Username claim in JWT | `"preferred_username"` | Maps JWT claim to username |
+| **oauth-role-attribute** | Role claim in JWT | `"marklogic-roles"` | Maps JWT claim to MarkLogic roles |
+| **oauth-privilege-attribute** | Privilege claim in JWT | `""` | Maps JWT claim to privileges (optional) |
+| **oauth-jwt-alg** | JWT signing algorithm | `"RS256"` | Algorithm for signature validation |
+| **oauth-jwks-uri** | JWKS endpoint URL | `"https://your-oauth-provider.com/jwks"` | Public key endpoint for validation |
+| **oauth-jwt-secret** | JWT signing secrets | Array of key objects | Used for manual key management |
+| **oauth-jwt-key-id** | Key identifier | `"DCYjkxqf7xLskUc_9tlaJ8-2QC4Vx-G1nPC1qPQro1Q"` | Identifies specific signing key |
+| **oauth-jwt-secret-value** | Public key PEM | `"-----BEGIN PUBLIC KEY-----..."` | PEM-formatted public key |
 
 ---
 
