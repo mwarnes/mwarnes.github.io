@@ -83,7 +83,7 @@ Applications requesting access to protected resources.
 
 ### 🔄 **OAuth 2.0 Authorization Flows**
 
-#### **Authorization Code Flow (Recommended)**
+#### **Authorization Code Flow (Client-to-Server)**
 ```mermaid
 sequenceDiagram
     participant Client

@@ -12,7 +12,7 @@
 
 ## 🎯 About This Hub
 
-Welcome to the definitive resource for MarkLogic security and authentication. Here you'll find in-depth articles, troubleshooting guides, and best practices for securing your MarkLogic deployments in enterprise environments.
+Welcome to a definitive resource for MarkLogic security and authentication. Here you'll find in-depth articles, troubleshooting guides, and best practices for securing your MarkLogic deployments in enterprise environments.
 
 ### 🔧 What You'll Find
 
@@ -24,7 +24,7 @@ Welcome to the definitive resource for MarkLogic security and authentication. He
 
 ### 👨‍💻 About the Author
 
-Created and maintained by Martin Warnes, a MarkLogic security specialist with extensive experience in enterprise authentication systems. If you have questions or need clarification, feel free to [reach out](mailto:martin.warnes@marklogic.com).
+Created and maintained by Martin Warnes, a Principal Technical Support Engineer at Progress MarkLogic with extensive experience in enterprise authentication systems.
 
 ---
 
