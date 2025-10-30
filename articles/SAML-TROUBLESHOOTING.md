@@ -134,13 +134,16 @@ curl -X POST --anyauth -u admin:admin \
     "cache-timeout": 300,
     "authorization": "internal",
     "saml-server": {
-      "saml-idp-entity-id": "https://keycloak.example.com/realms/marklogic",
-      "saml-sp-entity-id": "https://marklogic.example.com/saml/sp",
-      "saml-idp-sso-url": "https://keycloak.example.com/realms/marklogic/protocol/saml",
-      "saml-acs-url": "https://marklogic.example.com:8443/saml/acs",
-      "saml-want-assertions-signed": true,
-      "saml-want-authn-requests-signed": false,
-      "saml-attribute-names": ["role", "email", "name"]
+      "saml-entity-id": "https://keycloak.example.com/realms/marklogic",
+      "saml-destination": "https://marklogic.example.com:8443/saml/acs",
+      "saml-issuer": "https://keycloak.example.com/realms/marklogic",
+      "saml-assertion-host": "marklogic.example.com",
+      "saml-idp-certificate-authority": "-----BEGIN CERTIFICATE-----\n[YOUR_IDP_CERTIFICATE_HERE]\n-----END CERTIFICATE-----",
+      "saml-authn-signature": true,
+      "saml-attribute-names": {
+        "saml-attribute-name": ["role", "email", "name"]
+      },
+      "saml-privilege-attribute-name": "privileges"
     }
   }' \
   "http://saml.warnesnet.com:8002/manage/v2/external-security"
@@ -155,39 +158,41 @@ curl -X POST --anyauth -u admin:admin \
 | **authentication** | Authentication method | `"saml"` | Required for SAML |
 | **authorization** | Authorization source | `"internal"` or `"saml"` | Controls role assignment |
 | **cache-timeout** | Session cache duration (seconds) | `300` | Default: 300 seconds |
-| **saml-idp-entity-id** | Identity Provider entity ID | `"https://keycloak.example.com/realms/marklogic"` | Unique IdP identifier |
-| **saml-sp-entity-id** | Service Provider entity ID | `"https://marklogic.example.com/saml/sp"` | MarkLogic SP identifier |
-| **saml-idp-sso-url** | IdP Single Sign-On URL | `"https://keycloak.example.com/realms/marklogic/protocol/saml"` | IdP authentication endpoint |
-| **saml-acs-url** | Assertion Consumer Service URL | `"https://marklogic.example.com:8443/saml/acs"` | MarkLogic callback endpoint |
-| **saml-want-assertions-signed** | Require signed assertions | `true` | Enables signature validation |
-| **saml-want-authn-requests-signed** | Sign authentication requests | `false` | MarkLogic signs outbound requests |
-| **saml-attribute-names** | SAML attribute mapping | `["role", "email", "name"]` | Maps SAML attributes to user properties |
+| **saml-entity-id** | SAML entity ID | `"https://keycloak.example.com/realms/marklogic"` | Required if authorization is SAML |
+| **saml-destination** | SAML destination | `"https://marklogic.example.com:8443/saml/acs"` | Target URL for SAML responses |
+| **saml-issuer** | SAML issuer | `"https://keycloak.example.com/realms/marklogic"` | Identity provider issuer identifier |
+| **saml-assertion-host** | SAML assertion host | `"marklogic.example.com"` | Host name for assertion validation |
+| **saml-idp-certificate-authority** | IdP certificate authority | `"-----BEGIN CERTIFICATE-----..."` | PEM encoded X509 certificate for IdP |
+| **saml-sp-certificate** | SP certificate | `"-----BEGIN CERTIFICATE-----..."` | PEM encoded X509 certificate for SP (optional) |
+| **saml-sp-private-key** | SP private key | `"-----BEGIN PRIVATE KEY-----..."` | PEM encoded private key for SP (optional) |
+| **saml-authn-signature** | Require authentication signature | `true` | Enable signature validation |
+| **saml-attribute-names** | SAML attribute names | `{"saml-attribute-name": ["role", "email"]}` | List of SAML attribute names to map |
+| **saml-privilege-attribute-name** | Privilege attribute name | `"privileges"` | SAML attribute containing user privileges |
 
 ### 🔐 **Certificate Configuration**
 
-#### **Import IdP Certificate**
+#### **Update IdP Certificate**
 ```bash
-curl -X POST --anyauth -u admin:admin \
-  -H "Content-Type:application/json" \
-  -d '{
-    "certificate-template": {
-      "template-id": "saml-idp-cert",
-      "template-name": "SAML Identity Provider Certificate",
-      "template-description": "Certificate for validating SAML assertions from Keycloak IdP",
-      "certificate-pem": "-----BEGIN CERTIFICATE-----\nMIIDyzCCArOgAwIBAgIUVfpV56K9w6BsaPh9Wd6nRzF4zB0wDQYJKoZIhvcNAQEL...\n-----END CERTIFICATE-----"
-    }
-  }' \
-  "http://saml.warnesnet.com:8002/manage/v2/certificate-templates"
-```
-
-If you need to add the certificate to the external security configuration:
-
-```bash
+# Update the SAML external security configuration with IdP certificate
 curl -X PUT --anyauth -u admin:admin \
   -H "Content-Type:application/json" \
   -d '{
     "saml-server": {
-      "saml-idp-certificate": "saml-idp-cert"
+      "saml-idp-certificate-authority": "-----BEGIN CERTIFICATE-----\nMIIDyzCCArOgAwIBAgIUVfpV56K9w6BsaPh9Wd6nRzF4zB0wDQYJKoZIhvcNAQEL...\n-----END CERTIFICATE-----"
+    }
+  }' \
+  "http://saml.warnesnet.com:8002/manage/v2/external-security/SAML-Keycloak"
+```
+
+#### **Add SP Certificate and Private Key (Optional)**
+```bash
+# If you need to configure SP signing/encryption
+curl -X PUT --anyauth -u admin:admin \
+  -H "Content-Type:application/json" \
+  -d '{
+    "saml-server": {
+      "saml-sp-certificate": "-----BEGIN CERTIFICATE-----\n[YOUR_SP_CERTIFICATE_HERE]\n-----END CERTIFICATE-----",
+      "saml-sp-private-key": "-----BEGIN PRIVATE KEY-----\n[YOUR_SP_PRIVATE_KEY_HERE]\n-----END PRIVATE KEY-----"
     }
   }' \
   "http://saml.warnesnet.com:8002/manage/v2/external-security/SAML-Keycloak"
@@ -206,21 +211,15 @@ curl -X PUT --anyauth -u admin:admin \
   "http://saml.warnesnet.com:8002/manage/v2/servers/my-app-server/properties"
 ```
 
-#### **Configure App Server SAML Properties**
+#### **Verify App Server Configuration**
 ```bash
-curl -X PUT --anyauth -u admin:admin \
-  -H "Content-Type:application/json" \
-  -d '{
-    "saml-idp-entity-id": "https://keycloak.example.com/realms/marklogic",
-    "saml-sp-entity-id": "https://marklogic.example.com/saml/sp",
-    "saml-idp-sso-url": "https://keycloak.example.com/realms/marklogic/protocol/saml",
-    "saml-acs-url": "https://marklogic.example.com:8443/saml/acs",
-    "saml-want-assertions-signed": true,
-    "saml-want-authn-requests-signed": false,
-    "saml-attribute-names": ["role", "email", "name"]
-  }' \
+# Check the current app server configuration
+curl -X GET --anyauth -u admin:admin \
+  -H "Accept:application/json" \
   "http://saml.warnesnet.com:8002/manage/v2/servers/my-app-server/properties"
 ```
+
+> **Note**: SAML-specific properties like entity IDs, destinations, and certificates are configured in the external security configuration, not directly on the app server. The app server only needs to reference the external security configuration name.
 
 ---
 
