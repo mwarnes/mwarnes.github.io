@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../mwarnes.github.io"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../MarkLogic-Keycloak"
+		}
+	],
+	"settings": {}
+}
